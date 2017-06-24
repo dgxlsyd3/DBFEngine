@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
                 stringstream ssName;
                 ssName << "FirstName" << nID;
 
-                float fWeight = (float) nID / 40000.0;
+                float fWeight = (float) nID / 40000.0f;
                 int nAge = i % 120;
 
 

@@ -7,3 +7,6 @@ The purpose of the project is not to provide a compiled binary, but a c++ and h 
 
 see http://www.ostafichuk.com for more information
 
+2014-05-09:
+Modified for Big-Endian Machine,such as PA-RISC,IA64,etc.
+See http://www.qingfengju.com/index.asp?id=373

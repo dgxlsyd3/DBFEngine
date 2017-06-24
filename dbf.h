@@ -15,6 +15,18 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// Modify for Big-Endian dgx_lsyd3 2014-05-09 09:33:40
+
+#ifdef WIN32
+#pragma warning(disable:4996)
+#define _CRT_SECURE_NO_WARNINGS
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
@@ -28,6 +40,9 @@ using namespace std;
 typedef unsigned char uint8;
 typedef short int uint16;
 typedef int uint32;
+
+uint32 BigLittleSwap32(uint32 A);
+uint16 BigLittleSwap16(uint16 A);
 
 #define MAX_FIELDS 255
 #define DBF_DELETED_RECORD_FLAG '*' // found by reading with hex editor
@@ -90,7 +105,7 @@ public:
 
     int GetNumRecords()
     {
-        return m_FileHeader.uRecordsInFile;
+		return BigLittleSwap32(m_FileHeader.uRecordsInFile);
     }
     int GetNumFields()
     {
@@ -124,18 +139,27 @@ public:
     int ConvertStringToInt(string sInteger,int nSize, char *cRecord)
     {
         // convert the given string into an integer of nSize bytes (2 or 4 or 8 only)
-        if( nSize == 2 )
-        {
-            union {
-                short int i;
-                uint8 n[4];
-            } u;
-            stringstream ss;
-            ss << sInteger;
-            ss >> u.i;
+		if (nSize == 2)
+		{   //__hpux
+			union {
+				short int i;
+				uint8 n[4];
+			} u;
+			stringstream ss;
+			ss << sInteger;
+			ss >> u.i;
 
-            for( int i = 0 ; i < nSize ; i++ )
-                cRecord[i] = u.n[i];
+		#ifdef __hpux
+			for( int i = 0 ; i < nSize ; i++ )
+			{
+				cRecord[i] = u.n[nSize - i - 1];
+			}
+		#else
+			for( int i = 0 ; i < nSize ; i++ )
+			{
+				cRecord[i] = u.n[i];
+			}
+		#endif
 
             return 0;
         }
@@ -149,9 +173,17 @@ public:
             ss << sInteger;
             ss >> u.i;
 
+		#ifdef __hpux
+			for (int i = 0; i < nSize; i++)
+			{
+				cRecord[i] = u.n[nSize - i - 1];
+			}
+		#else
             for( int i = 0 ; i < nSize ; i++ )
-                cRecord[i] = u.n[i];
-
+			{
+				cRecord[i] = u.n[i];
+			}
+		#endif
             return 0;
         }
         else if( nSize ==8 )
@@ -164,8 +196,17 @@ public:
             ss << sInteger;
             ss >> u.i;
 
-            for( int i = 0 ; i < nSize ; i++ )
-                cRecord[i] = u.n[i];
+		#ifdef __hpux
+			for (int i = 0; i < nSize; i++)
+			{
+				cRecord[i] = u.n[nSize - i - 1];
+			}
+		#else
+			for (int i = 0; i < nSize; i++)
+			{
+				cRecord[i] = u.n[i];
+			}
+		#endif
 
             return 0;
         }
